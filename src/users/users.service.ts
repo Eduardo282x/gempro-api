@@ -1,8 +1,8 @@
+import { badResponse, baseResponse, DtoBaseResponse } from 'src/dtos/base.dto';
+import { DtoCompany, DtoCreateUser, DtoUpdateUser } from 'src/dtos/user.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { Role } from '@prisma/client';
-import { badResponse, baseResponse, DtoBaseResponse } from 'src/dtos/base.dto';
-import { DtoCreateUser, DtoUpdateUser } from 'src/dtos/user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
@@ -51,16 +51,35 @@ export class UsersService {
         });
     }
 
+    async createCompany(company: DtoCompany): Promise<DtoBaseResponse> {
+        try {
+            await this.prismaService.company.create({
+                data: {
+                    name: company.name,
+                }
+            });
+
+            baseResponse.message = 'Compañía creada exitosamente.'
+            return baseResponse;
+        } catch (err) {
+            badResponse.message = 'Error al crear la compañía.'
+            return badResponse;
+        }
+    }
+
     async createUser(anyUser: DtoCreateUser, role: Role): Promise<DtoBaseResponse> {
         let newCompany = 1
 
         if (role === 'COMPANY') {
             const findCompany = await this.prismaService.company.findFirst({
                 where: {
-                    name: anyUser.company
+                    name: {
+                        equals: anyUser.company,
+                        mode: 'insensitive',
+                    }
                 }
             })
-            newCompany = findCompany.id;
+            if (findCompany) newCompany = findCompany.id
 
             if (!findCompany) {
                 const company = await this.prismaService.company.create({
@@ -74,24 +93,23 @@ export class UsersService {
         }
 
         try {
-            
-        const newWorker = await this.prismaService.user.create({
-            data: {
-                firstName: anyUser.firstName,
-                lastName: anyUser.lastName,
-                email: anyUser.email,
-                secondEmail: anyUser.secondEmail !== '' ? anyUser.secondEmail : null,
-                password: anyUser.identify,
-                role: role,
-                status: true,
-                identify: anyUser.identify,
-                companyId: newCompany,
-                specialty: anyUser.specialty,
-            }
-        });
+            await this.prismaService.user.create({
+                data: {
+                    firstName: anyUser.firstName,
+                    lastName: anyUser.lastName,
+                    email: anyUser.email,
+                    secondEmail: anyUser.secondEmail !== '' ? anyUser.secondEmail : null,
+                    password: anyUser.identify,
+                    role: role,
+                    status: true,
+                    identify: anyUser.identify,
+                    companyId: newCompany,
+                    specialty: anyUser.specialty,
+                }
+            });
 
-        baseResponse.message = 'Trabajador creado exitosamente';
-        return baseResponse;
+            baseResponse.message = 'Trabajador creado exitosamente';
+            return baseResponse;
         } catch (err) {
             badResponse.message = 'Error al crear el trabajador ' + err.message;
             return badResponse;
@@ -104,10 +122,13 @@ export class UsersService {
         if (role === 'COMPANY') {
             const findCompany = await this.prismaService.company.findFirst({
                 where: {
-                    name: anyUser.company
+                    name: {
+                        equals: anyUser.company,
+                        mode: 'insensitive',
+                    }
                 }
             })
-            newCompany = findCompany.id;
+            if (findCompany) newCompany = findCompany.id;
 
             if (!findCompany) {
                 const company = await this.prismaService.company.create({

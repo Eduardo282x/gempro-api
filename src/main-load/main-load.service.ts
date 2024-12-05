@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import { baseResponse, DtoBaseResponse } from 'src/dtos/base.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class MainLoadService {

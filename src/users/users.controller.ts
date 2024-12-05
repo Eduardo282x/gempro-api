@@ -1,8 +1,8 @@
+import { DtoCompany, DtoCreateUser, DtoUpdateUser } from 'src/dtos/user.dto';
 import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { DtoBaseResponse } from 'src/dtos/base.dto';
 import { UsersService } from './users.service';
 import { Company, User } from '@prisma/client';
-import { DtoCreateUser, DtoUpdateUser } from 'src/dtos/user.dto';
-import { DtoBaseResponse } from 'src/dtos/base.dto';
 
 @Controller('users')
 export class UsersController {
@@ -36,6 +36,11 @@ export class UsersController {
     @Post('/userCompanies')
     async createUserCompany(@Body() user: DtoCreateUser): Promise<DtoBaseResponse> {
         return await this.userService.createUser(user, 'COMPANY');
+    }
+
+    @Post('/company')
+    async createCompany(@Body() company: DtoCompany): Promise<DtoBaseResponse> {
+        return await this.userService.createCompany(company);
     }
 
     @Put('/workers')

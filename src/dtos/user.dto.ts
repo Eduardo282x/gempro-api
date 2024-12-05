@@ -17,9 +17,6 @@ export class DtoCreateUser {
     @IsString()
     @IsOptional()
     company?: string;
-    @IsNumber()
-    @IsOptional()
-    companyId?: Number;
 }
 
 export class DtoUpdateUser extends DtoCreateUser {
@@ -27,4 +24,9 @@ export class DtoUpdateUser extends DtoCreateUser {
     status: boolean;
     @IsNumber()
     idUser: number;
+}
+
+export class DtoCompany {
+    @IsString()
+    name: string;
 }
