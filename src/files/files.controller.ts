@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Get, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { File } from '@prisma/client';
 import { badResponse, DtoBaseResponse } from 'src/dtos/base.dto';
@@ -19,15 +19,23 @@ export class FilesController {
     }
 
     @Get('/:idFile')
-    async getActivities(@Param('idFile') idFile: string, @Res() res): Promise<Observable<Object> | DtoBaseResponse> {
+    async getActivities(@Param('idFile') idFile: string, @Res() res){
         try {
-            const fileName: File = await this.filesServices.findFile(idFile) as File;
-            if (fileName) {
-                return of(res.sendFile(join(process.cwd(), 'files_system/' + fileName.url)));
+            const fileData: File = await this.filesServices.findFile(idFile) as File;
+            if (!fileData) {
+                throw new Error('Archivo no encontrado');
             }
-        } catch(err) {
-            badResponse.message = 'Error al buscar el archivo';
-            return badResponse;
+            
+            const filePath = join(process.cwd(), 'files_system/' + fileData.url);
+            console.log('Ruta del archivo:', filePath); // Verifica la ruta del archivo
+            res.sendFile(filePath, {
+                headers: {
+                    'Content-Type': 'application/pdf', // Asegúrate de que el tipo de contenido sea correcto
+                }
+            });
+        } catch (err) {
+            console.error('Error al buscar el archivo:', err);
+            res.status(500).json({ message: 'Error al buscar el archivo' });
         }
     }
 
@@ -42,14 +50,21 @@ export class FilesController {
     }))
     async uploadFile(
         @UploadedFile() file: Express.Multer.File,
+        @Body() body: { nameReport: string; email: string; senderId: string }
     ) {
-
-        // Verifica si el archivo se ha cargado correctamente.
         if (!file) {
             throw new BadRequestException('Archivo no encontrado');
         }
 
-        // Continúa con la lógica de negocio (por ejemplo, guardar en la base de datos).
-        return await this.filesServices.uploadFiles(file);
+        const { nameReport, email, senderId } = body;
+
+        // Lógica adicional
+        return await this.filesServices.uploadFiles(
+            file,
+            nameReport,
+            email,
+            senderId,
+        );
     }
+
 }

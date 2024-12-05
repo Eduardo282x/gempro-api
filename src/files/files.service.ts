@@ -33,13 +33,18 @@ export class FilesService {
         return findFileName;
     }
 
-    async uploadFiles(file: Express.Multer.File,): Promise<DtoBaseResponse> {
+    async uploadFiles(file: Express.Multer.File, nameReport: string, email: string, senderId: string): Promise<DtoBaseResponse> {
+        const findUserCompanies = await this.prismaService.user.findFirst({
+            where:{
+                email
+            }
+        })
         const saveFile = await this.prismaService.file.create({
             data: {
-                name: file.filename,
+                name: nameReport,
                 url: file.filename,
-                uploadedById: 1,
-                directedToId: 1
+                uploadedById: Number(senderId),
+                directedToId: findUserCompanies.id
             }
         });
 
