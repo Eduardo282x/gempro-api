@@ -3,11 +3,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { DtoFilterReports } from 'src/dtos/files.dto';
 import { Injectable } from '@nestjs/common';
 import { File } from '@prisma/client';
+import { EmailService } from 'src/email/email.service';
+import path from 'path';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class FilesService {
 
-    constructor(private prismaService: PrismaService) { }
+    constructor(private prismaService: PrismaService,private readonly configService: ConfigService) { }
 
     async getFiles(idUser: string): Promise<File[]> {
         const findUser = await this.prismaService.user.findFirst({
@@ -78,16 +81,16 @@ export class FilesService {
         const { company, worker, userCompanies } = bodyFiltered;
 
         const whereClause: any = {};
-    
+
         // Validar cada campo y agregarlo a la cláusula `where` si tiene valor
         if (worker) {
             whereClause.uploadedById = Number(worker);
         }
-    
+
         if (userCompanies) {
             whereClause.directedToId = Number(userCompanies);
         }
-    
+
         if (company) {
             whereClause.directedTo = {
                 company: {
@@ -95,7 +98,7 @@ export class FilesService {
                 },
             };
         }
-    
+
         // Realizar la consulta con el filtro dinámico
         const files = await this.prismaService.file.findMany({
             where: whereClause,
@@ -111,7 +114,7 @@ export class FilesService {
                 uploadedAt: 'desc',
             },
         });
-    
+
         return files;
     }
 
@@ -140,12 +143,25 @@ export class FilesService {
             }
         });
 
-        if (!saveFile) {
-            badResponse.message = 'No se pudo guardar el archivo';
+        // Enviar correo con el archivo adjunto
+        try {
+            const emailService = new EmailService(this.configService);
+            const filePath = path.resolve(__dirname, '../../files_system', file.filename); // Ruta completa al archivo en la carpeta `files_system`
+
+            await emailService.sendEmailWithAttachment(
+                email,
+                `Nuevo archivo: ${nameReport}`,
+                `Hola, se ha subido un nuevo archivo: ${nameReport}.`,
+                filePath
+            );
+
+            baseResponse.message = 'Archivo subido y enviado exitosamente.';
+            return baseResponse;
+        } catch (error) {
+            console.error('Error enviando el correo:', error);
+            badResponse.message = 'El archivo se guardó, pero no se pudo enviar el correo.';
             return badResponse;
         }
 
-        baseResponse.message = 'Archivo subido exitosamente.';
-        return baseResponse;
     }
 }
