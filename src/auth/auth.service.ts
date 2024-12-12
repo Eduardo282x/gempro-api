@@ -11,7 +11,7 @@ export class AuthService {
     constructor(private prismaService: PrismaService, private readonly configService: ConfigService){}
 
     async authenticateUser(email: string, password: string): Promise<ResponseLogin | DtoBaseResponse> {
-        const findUser = await this.prismaService.user.findUnique({
+        const findUser = await this.prismaService.user.findFirst({
             where: {
                 email,
                 password,

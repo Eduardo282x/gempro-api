@@ -7,7 +7,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { MainLoadModule } from './main-load/main-load.module';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
-import { EmailService } from './email/email.service';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -15,11 +15,12 @@ import { EmailService } from './email/email.service';
     AuthModule, 
     MainLoadModule,
     ConfigModule.forRoot({
-      isGlobal: true, // Hace que las variables estén disponibles globalmente
+      isGlobal: true,
     }),
     UsersModule,
+    EmailModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, EmailService],
+  providers: [AppService, PrismaService],
 })
 export class AppModule {}

@@ -4,13 +4,17 @@ import { DtoFilterReports } from 'src/dtos/files.dto';
 import { Injectable } from '@nestjs/common';
 import { File } from '@prisma/client';
 import { EmailService } from 'src/email/email.service';
-import path from 'path';
+import * as path from 'path';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class FilesService {
 
-    constructor(private prismaService: PrismaService,private readonly configService: ConfigService) { }
+    constructor(
+        private prismaService: PrismaService,
+        private readonly configService: ConfigService,
+        private readonly emailService: EmailService,
+    ) { }
 
     async getFiles(idUser: string): Promise<File[]> {
         const findUser = await this.prismaService.user.findFirst({
@@ -134,7 +138,7 @@ export class FilesService {
                 email
             }
         })
-        const saveFile = await this.prismaService.file.create({
+        await this.prismaService.file.create({
             data: {
                 name: nameReport,
                 url: file.filename,
@@ -145,15 +149,35 @@ export class FilesService {
 
         // Enviar correo con el archivo adjunto
         try {
-            const emailService = new EmailService(this.configService);
-            const filePath = path.resolve(__dirname, '../../files_system', file.filename); // Ruta completa al archivo en la carpeta `files_system`
+            const filePath = path.join(process.cwd(), 'files_system/' + file.filename);
 
-            await emailService.sendEmailWithAttachment(
+            const text = `
+                            <p><strong>Informe técnico - GEMPRO</strong></p>
+                            <p>Saludos cordiales,</p>
+                            <p>Su informe técnico ya está disponible.</p>
+                            <p><a href="https://nbw1f8c7-5173.use2.devtunnels.ms/">Visita nuestra pagina</a></p>
+                            <p>En GEMPRO somos calidad y servicio.</p>
+                            <p>¡Muchas gracias por preferirnos!</p>
+                            <p>Venezuela, Edo Zulia - Maracaibo, Sabaneta, Ubr. Urdaneta, Av Principal, Calle 9, edificio Gempro 105A</p>
+                            <p>Contacto +58 414-6355951</p>
+                            <p><img src="cid:gemproLogo3" alt="GEMPRO Logo" style="width:200px;"/></p>
+                        `;
+
+            await this.emailService.sendEmailWithAttachment(
                 email,
-                `Nuevo archivo: ${nameReport}`,
-                `Hola, se ha subido un nuevo archivo: ${nameReport}.`,
+                'Gempro: Grupo Empresarial de Mantenimiento Proactivo - Informe Técnico.',
+                text,
                 filePath
             );
+
+            if (findUserCompanies.secondEmail) {
+                await this.emailService.sendEmailWithAttachment(
+                    findUserCompanies.secondEmail,
+                    'Gempro: Grupo Empresarial de Mantenimiento Proactivo - Informe Técnico.',
+                    text,
+                    filePath
+                );
+            }
 
             baseResponse.message = 'Archivo subido y enviado exitosamente.';
             return baseResponse;

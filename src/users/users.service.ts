@@ -68,7 +68,18 @@ export class UsersService {
     }
 
     async createUser(anyUser: DtoCreateUser, role: Role): Promise<DtoBaseResponse> {
-        let newCompany = 1
+        let newCompany = 1;
+
+        const findUserByEmail = await this.prismaService.user.findFirst({
+            where: {
+                email: anyUser.email
+            }
+        });
+
+        if(findUserByEmail){
+            badResponse.message = 'Ya existe un usuario registrado con este correo';
+            return badResponse;
+        }
 
         if (role === 'COMPANY') {
             const findCompany = await this.prismaService.company.findFirst({
@@ -117,59 +128,54 @@ export class UsersService {
     }
 
     async updateWorker(anyUser: DtoUpdateUser, role: Role): Promise<DtoBaseResponse> {
-        let newCompany = 1
+        try {
+            let newCompany = 1
 
-        if (role === 'COMPANY') {
-            const findCompany = await this.prismaService.company.findFirst({
-                where: {
-                    name: {
-                        equals: anyUser.company,
-                        mode: 'insensitive',
+            if (role === 'COMPANY') {
+                const findCompany = await this.prismaService.company.findFirst({
+                    where: {
+                        name: {
+                            equals: anyUser.company,
+                            mode: 'insensitive',
+                        }
                     }
+                })
+                if (findCompany) newCompany = findCompany.id;
+    
+                if (!findCompany) {
+                    const company = await this.prismaService.company.create({
+                        data: {
+                            name: anyUser.company
+                        }
+                    });
+    
+                    newCompany = company.id;
                 }
-            })
-            if (findCompany) newCompany = findCompany.id;
-
-            if (!findCompany) {
-                const company = await this.prismaService.company.create({
-                    data: {
-                        name: anyUser.company
-                    }
-                });
-
-                newCompany = company.id;
             }
-        }
+    
+            const updWorker = await this.prismaService.user.update({
+                data: {
+                    firstName: anyUser.firstName,
+                    lastName: anyUser.lastName,
+                    secondEmail: anyUser.secondEmail !== '' ? anyUser.secondEmail : null,
+                    password: anyUser.identify,
+                    role: role,
+                    email: anyUser.email,
+                    status: anyUser.status,
+                    identify: anyUser.identify,
+                    companyId: newCompany,
+                    specialty: anyUser.specialty,
+                },
+                where: {
+                    id: anyUser.idUser
+                }
+            });
 
-        const updWorker = await this.prismaService.user.update({
-            data: {
-                firstName: anyUser.firstName,
-                lastName: anyUser.lastName,
-                secondEmail: anyUser.secondEmail !== '' ? anyUser.secondEmail : null,
-                password: anyUser.identify,
-                role: role,
-                status: anyUser.status,
-                identify: anyUser.identify,
-                companyId: newCompany,
-                specialty: anyUser.specialty,
-            },
-            where: {
-                id: anyUser.idUser
-            }
-        });
-
-
-        if (anyUser.email) {
-            updWorker.email = anyUser.email;
-        }
-
-
-        if (!updWorker) {
-            badResponse.message = 'Error al actualizar el trabajador';
+            baseResponse.message = 'Trabajador actualizado exitosamente';
+            return baseResponse;
+        } catch (error) {
+            badResponse.message = 'Error al actualizar el trabajador'+ error.message;
             return badResponse;
         }
-
-        baseResponse.message = 'Trabajador actualizado exitosamente';
-        return baseResponse;
     }
 }
