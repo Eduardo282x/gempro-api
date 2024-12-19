@@ -152,15 +152,18 @@ export class FilesService {
             const filePath = path.join(process.cwd(), 'files_system/' + file.filename);
 
             const text = `
-                            <p><strong>Informe técnico - GEMPRO</strong></p>
-                            <p>Saludos cordiales,</p>
-                            <p>Su informe técnico ya está disponible.</p>
-                            <p><a href="https://nbw1f8c7-5173.use2.devtunnels.ms/">Visita nuestra pagina</a></p>
-                            <p>En GEMPRO somos calidad y servicio.</p>
-                            <p>¡Muchas gracias por preferirnos!</p>
-                            <p>Venezuela, Edo Zulia - Maracaibo, Sabaneta, Ubr. Urdaneta, Av Principal, Calle 9, edificio Gempro 105A</p>
-                            <p>Contacto +58 414-6355951</p>
-                            <p><img src="cid:gemproLogo3" alt="GEMPRO Logo" style="width:200px;"/></p>
+                            <p style="color:#000"><strong>Saludos cordiales,</strong></p>
+                            <p style="color:#000"><strong>Su informe técnico ya se encuentra disponible.</strong></p>
+                            <br>
+                            <p style="color:#062a76"><strong>¡Muchas gracias por preferirnos!</strong></p>
+                            <br>
+                            <p style="color:#000"><strong>Visita nuestra pagina web, para que conozcas más de nuestros servicios.</strong></p>
+                            <p><a href="https://nbw1f8c7-5173.use2.devtunnels.ms/" style="color:#098033"><strong>!En GEMPRO somos calidad y servicio.!</strong></a></p>
+                            <br>
+                            <p style="color:#000"><strong>Venezuela, Edo Zulia - Maracaibo, Sabaneta, Ubr. Urdaneta, Av Principal, Calle 9, edificio Gempro 105A</strong></p>
+                            <p style="color:#000"><strong>Contactos +58 414-6355951 - +51 916710376</strong></p>
+                            <p style="color:#000"><strong>Email: info@gempro.com.ve</strong></p>
+                            <p><img src="cid:gemproLogo" alt="GEMPRO Logo" style="width:200px;"/></p>
                         `;
 
             await this.emailService.sendEmailWithAttachment(

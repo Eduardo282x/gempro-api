@@ -119,10 +119,10 @@ export class UsersService {
                 }
             });
 
-            baseResponse.message = 'Trabajador creado exitosamente';
+            baseResponse.message = `${role === 'COMPANY' ? 'Cliente' : 'Trabajador'} creado exitosamente`;
             return baseResponse;
         } catch (err) {
-            badResponse.message = 'Error al crear el trabajador ' + err.message;
+            badResponse.message = `Error al crear el ${role === 'COMPANY' ? 'Cliente' : 'Trabajador'} ${err.message}`;
             return badResponse;
         }
     }
@@ -171,10 +171,11 @@ export class UsersService {
                 }
             });
 
-            baseResponse.message = 'Trabajador actualizado exitosamente';
+            
+            baseResponse.message = `${role === 'COMPANY' ? 'Cliente' : 'Trabajador'} actualizado exitosamente`;
             return baseResponse;
         } catch (error) {
-            badResponse.message = 'Error al actualizar el trabajador'+ error.message;
+            badResponse.message = `Error al actualizar el ${role === 'COMPANY' ? 'Cliente' : 'Trabajador'} ${error.message}`;
             return badResponse;
         }
     }

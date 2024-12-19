@@ -37,9 +37,9 @@ export class EmailService {
             html: text,
             attachments: [
                 {
-                    filename: 'gemproLogo3.jpg', // Archivo de la imagen
-                    path: path.resolve(__dirname, '../assets/img/gemproLogo3.jpg'), // Ruta a la imagen
-                    cid: 'gemproLogo3', // CID para embebido en el HTML
+                    filename: 'gemproLogo.jpg', // Archivo de la imagen
+                    path: path.resolve(__dirname, '../assets/img/gemproLogo.jpg'), // Ruta a la imagen
+                    cid: 'gemproLogo', // CID para embebido en el HTML
                 },
                 {
                     filename: fileName,

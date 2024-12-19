@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class AuthService {
 
-    constructor(private prismaService: PrismaService, private readonly configService: ConfigService){}
+    constructor(private prismaService: PrismaService, private readonly configService: ConfigService) { }
 
     async authenticateUser(email: string, password: string): Promise<ResponseLogin | DtoBaseResponse> {
         const findUser = await this.prismaService.user.findFirst({
@@ -21,21 +21,21 @@ export class AuthService {
             }
         });
 
-        if(!findUser){
+        if (!findUser) {
             badResponse.message = 'El email o la contraseña son incorrectos';
             return badResponse;
-        } 
+        }
 
-        if(!findUser.status){
+        if (!findUser.status) {
             badResponse.message = 'El usuario no se encuentra activo';
             return badResponse;
-        } 
+        }
 
         baseResponse.message = `Bienvenido ${findUser.firstName} ${findUser.lastName}`;
 
         const payload = {
             id: findUser.id,
-            firstName: findUser.id,
+            firstName: findUser.firstName,
             lastName: findUser.lastName,
             email: findUser.email,
             role: findUser.role,
@@ -44,7 +44,7 @@ export class AuthService {
             createdAt: findUser.createdAt,
             updatedAt: findUser.updatedAt
         };
-        
+
         // Generar el token con una clave secreta y un tiempo de expiración
         const secretKey = this.configService.get<string>('JWT_SECRET'); // Usa una clave secreta desde las variables de entorno
         const token = jwt.sign(payload, secretKey, { expiresIn: '8h' });
@@ -55,5 +55,23 @@ export class AuthService {
         }
 
         return responseLogin;
+    }
+
+    async changePassword(id: number, password: string): Promise<DtoBaseResponse> {
+        try {
+            await this.prismaService.user.update({
+                where: {
+                    id
+                },
+                data: {
+                    password
+                }
+            });
+            baseResponse.message = 'Contraseña cambiada exitosamente';
+            return baseResponse;
+        } catch (err) {
+            badResponse.message = 'Error al cambiar la contraseña';
+            return badResponse;
+        }
     }
 }
