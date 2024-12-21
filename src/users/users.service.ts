@@ -28,20 +28,39 @@ export class UsersService {
                 }
             });
     }
+    async userCompaniesAvalibles() {
+        return await this.prismaService.user.findMany(
+            {
+                where: {
+                    role: 'COMPANY',
+                    status: true
+                },
+                include: {
+                    company: true
+                }
+            });
+    }
 
     async usersByCompanies(companyId) {
         return await this.prismaService.user.findMany(
             {
                 where: {
                     role: 'COMPANY',
-                    companyId
+                    companyId,
+                    status: true
                 },
             });
     }
 
     async companies() {
+        const userCompanies = await this.userCompaniesAvalibles();
+        const getCompaniesByUsers = userCompanies.map(user => user.companyId);
+
         return await this.prismaService.company.findMany({
             where: {
+                id: {
+                    in: getCompaniesByUsers
+                },
                 name: {
                     not: {
                         contains: 'Gempro'
@@ -76,7 +95,7 @@ export class UsersService {
             }
         });
 
-        if(findUserByEmail){
+        if (findUserByEmail) {
             badResponse.message = 'Ya existe un usuario registrado con este correo';
             return badResponse;
         }
@@ -141,18 +160,18 @@ export class UsersService {
                     }
                 })
                 if (findCompany) newCompany = findCompany.id;
-    
+
                 if (!findCompany) {
                     const company = await this.prismaService.company.create({
                         data: {
                             name: anyUser.company
                         }
                     });
-    
+
                     newCompany = company.id;
                 }
             }
-    
+
             const updWorker = await this.prismaService.user.update({
                 data: {
                     firstName: anyUser.firstName,
@@ -171,7 +190,7 @@ export class UsersService {
                 }
             });
 
-            
+
             baseResponse.message = `${role === 'COMPANY' ? 'Cliente' : 'Trabajador'} actualizado exitosamente`;
             return baseResponse;
         } catch (error) {

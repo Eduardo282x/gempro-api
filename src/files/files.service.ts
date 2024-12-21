@@ -189,6 +189,21 @@ export class FilesService {
             badResponse.message = 'El archivo se guardó, pero no se pudo enviar el correo.';
             return badResponse;
         }
+    }
 
+    async deleteFile(idFile: string): Promise<DtoBaseResponse> {
+        try {
+            await this.prismaService.file.delete({
+                where: {
+                    id: Number(idFile)
+                }
+            });
+
+            baseResponse.message = 'Reporte eliminado exitosamente';
+            return baseResponse;
+        } catch (err) {
+            badResponse.message += err.message
+            return badResponse;
+        }
     }
 }

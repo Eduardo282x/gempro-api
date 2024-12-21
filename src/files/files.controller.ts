@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DtoFilterReports } from 'src/dtos/files.dto';
 import { FilesService } from './files.service';
@@ -63,6 +63,11 @@ export class FilesController {
             email,
             senderId,
         );
+    }
+
+    @Delete('/:idFile')
+    async deleteFile(@Param('idFile') idFile: string) {
+        return await this.filesServices.deleteFile(idFile);
     }
 
 }
